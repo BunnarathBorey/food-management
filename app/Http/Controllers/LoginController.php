@@ -135,6 +135,11 @@ class LoginController extends Controller
                     'users' => $users,
                     'user_details' => $user_details,
                     'token' => $users->createToken('authToken', [
+                        'user:profile-view',
+                        'user:edit-profile',
+
+                        'user:view-order',
+                        'user:order-remove',
 
 
                     ])->plainTextToken
@@ -221,7 +226,11 @@ class LoginController extends Controller
                 $signInData = [
                     'user' => $users,
                     'token' => $users->createToken('authToken', [
+                        'user:profile-view',
+                        'user:edit-profile',
 
+                        'user:view-order',
+                        'user:order-remove',
 
                     ])->plainTextToken
                 ];
@@ -361,6 +370,7 @@ class LoginController extends Controller
                     'user_details' => $user_details,
                     'token' => $users->createToken('authToken', [
                         'admin:profile',
+                        'admin:edit-profile',
 
 
                         'admin:food-add',
@@ -454,6 +464,7 @@ class LoginController extends Controller
                     'user' => $users,
                     'token' => $users->createToken('authToken', [
                         'admin:profile',
+                        'admin:edit-profile',
 
                         'admin:food-add',
                         'admin:food-view',

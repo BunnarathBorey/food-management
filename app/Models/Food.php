@@ -16,9 +16,12 @@ class Food extends Model
         'category',
         'food_image',
         'availability',
+        'created_at',
+        'updated_at'
     ];
 
     protected $casts = [
+        'availability' => 'boolean',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
