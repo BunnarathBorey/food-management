@@ -1,0 +1,119 @@
+
+version: "3.7"
+
+services:
+
+# app
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: app
+    container_name: app-food_management-laravel
+    restart: unless-stopped
+    environment:
+      VIRTUAL_HOST: laravel.test
+      # MAIL_HOST: mailpit   # Add this line
+      # MAIL_PORT: 1025      # Add this line
+    working_dir: /var/www/
+    volumes:
+      - ./:/var/www
+      - ~/.ssh:/root/.ssh
+    depends_on:
+      - db
+      - redis
+    networks:
+      - laravel
+   # Mailpit
+  # mailpit:
+  #   image: axllent/mailpit
+  #   container_name: mailpit
+  #   ports:
+  #     - "1025:1025"  # SMTP port
+  #     - "8025:8025"  # Web UI port
+  #   networks:
+  #     - laravel
+
+# DATABASE (MySQL)
+  db:
+    image: mysql:8.0
+    container_name: mysql-food_management-laravel
+    restart: unless-stopped
+    ports:
+      - "3312:3306"
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    volumes:
+      - ./docker-compose/mysql/data:/var/lib/mysql
+      - ./docker-compose/mysql/logs:/var/log/mysql
+      - ./docker-compose/mysql/ql:/docker-entrypoint-initdb.d
+    networks:
+      - laravel
+
+# Nginx
+  nginx:
+    image: nginx:alpine
+    container_name: nginx-food_management-laravel
+    restart: unless-stopped
+    ports:
+        - 8090:80
+    volumes:
+        - ./:/var/www
+        - ./docker-compose/nginx:/etc/nginx/conf.d
+        - ./docker-compose/nginx/phpmyadmin.conf:/etc/nginx/conf.d/phpmyadmin.conf
+    networks:
+        - laravel
+
+# phpMyAdmin
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin-food_management-laravel
+    ports:
+        - 8080:80
+    links:
+        - db
+    restart: unless-stopped
+    environment:
+        PMA_HOST: db
+        #PMA_USER: ${DB_USERNAME}
+        #PMA_PASSWORD: ${DB_PASSWORD}
+        PMA_PORT: 3306
+        PMA_ARBITRARY: 1
+    networks:
+        - laravel
+
+# Redis
+  redis:
+    image: "redis:alpine"
+    container_name: ri-food_management-redis
+    restart: unless-stopped
+    volumes:
+        - ./docker-compose/redis/data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - laravel
+
+# # Ngrok
+#   ngrok:
+#     image: wernight/ngrok
+#     container_name: ngrok-term_project_4-laravel
+#     restart: unless-stopped
+#     environment:
+#       - NGROK_AUTHTOKEN=2lhG40Ua9jScjVnXJCjzzI04VNk_5g6xux4zJWECXJWCZ69yi
+#       - NGROK_PORT=nginx:80                   # Tunnel Nginx port (8090 is mapped to 80 internally)
+#     ports:
+#       - "4040:4040"  # Expose Ngrok dashboard on localhost
+#     depends_on:
+#       - nginx
+#     networks:
+#       - laravel
+
+networks:
+  laravel:
+    driver: bridge
